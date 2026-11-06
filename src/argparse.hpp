@@ -1,5 +1,5 @@
-#ifndef _ARGPARSE_H
-#define _ARGPARSE_H
+#ifndef _ARGPARSE_HPP
+#define _ARGPARSE_HPP
 
 #include <getopt.h>
 #include <stdlib.h>

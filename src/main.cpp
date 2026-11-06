@@ -1,5 +1,6 @@
 #include <iostream>
-#include "argparse.h"
+#include "argparse.hpp"
+#include "io.hpp"
 
 using namespace std;
 
@@ -14,4 +15,9 @@ int main(int argc, char **argv){
                << "threshold: " << opts.threshold << '\n'
                << "flag: " << opts.flag << '\n'
                << "seed: " << opts.seed << '\n';
+
+    std::vector<std::vector<double>> points;
+    read_file(opts.input_filename, &points);
+
+    std::cout << "point[2][3]:" << points[2][3] << endl;
 }
