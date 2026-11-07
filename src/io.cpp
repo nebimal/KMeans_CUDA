@@ -15,6 +15,8 @@ void read_file(char* input_filename, std::vector<std::vector<double>>* points)
     std::string line;
     std::getline(in, line);
     int num_points = std::stoi(line);
+
+    points->clear();
     
     for (int i = 0; i < num_points; ++i) {
         std::getline(in, line);
@@ -23,13 +25,11 @@ void read_file(char* input_filename, std::vector<std::vector<double>>* points)
         int id;
         row >> id;
 
-        if (id >= points->size()) {
-            points->resize(id + 1);
-        }
-
+        std::vector<double> coordinates;
         double coordinate;
         while (row >> coordinate) {
-            (*points)[id].push_back(coordinate);
+            coordinates.push_back(coordinate);
         }
+        points->push_back(coordinates);
     }
 }

@@ -1,6 +1,7 @@
 #include <iostream>
 #include "argparse.hpp"
 #include "io.hpp"
+#include "kmeans.hpp"
 
 using namespace std;
 
@@ -19,5 +20,12 @@ int main(int argc, char **argv){
     std::vector<std::vector<double>> points;
     read_file(opts.input_filename, &points);
 
-    std::cout << "point[2][3]:" << points[2][3] << endl;
+    std::cout << "point[2][]:";
+    for (int i = 0; i < opts.dims; i++)
+    {
+        std::cout << " " << points[2][i];
+    }
+    std::cout << std::endl;
+
+    kmeans(&points, &opts);
 }
