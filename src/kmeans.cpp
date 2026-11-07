@@ -1,10 +1,13 @@
 #include "kmeans.hpp"
 #include "argparse.hpp"
+#include <cmath>
+#include <unordered_map>
 
 
 static unsigned long int next = 1;
 static unsigned long kmeans_rmax = 32767;
 std::vector<std::vector<double>> centroids;
+std::unordered_map<int, int> centroidAssigner;
 
 int kmeans_rand() {
     next = next * 1103515245 + 12345;
@@ -28,11 +31,55 @@ void randomCentroids(int k, int num_points, std::vector<std::vector<double>>* po
     }
 }
 
+//  2nd Step: Map each point to it's nearest centroid. 
+void nearestCentroid(int k, int num_points, std::vector<std::vector<double>>* points, int dim)
+{
+    std::vector<double> distance(k); // This should be size of k.
+    centroidAssigner.clear();
+
+    // given 2048 points and 16 centroids. Double for loop I'd assume.
+    for (int i = 0; i < num_points; i++)  // For each point.
+    {
+        int minIndex = 0;
+        for (int j = 0; j < k; j++)       // For each centroid.
+        {
+            // I want to say I need a vector to hold the results from point A and all the other centroids.
+
+            distance[j] = euclideanDistance((*points)[i], centroids[j], dim);
+            // so at centroid 'j', the distance from point 'i' is distance[j].
+            // I want an if statement that will give me the index of the smallest distance.
+            if (distance[minIndex] > distance[j])
+            {
+                minIndex = j; // The centroid with the smallest distance from the point.
+            }
+        }
+        // Outside the for loop, we need to assign the point to the centroid with least distance.
+        centroidAssigner[i] = minIndex;
+    }
+}
+
+double euclideanDistance(std::vector<double>& point, std::vector<double>& centroid, int dim)
+{
+    double sum = 0;
+    for (int i = 0; i < dim; i++) {
+        double difference = point[i] - centroid[i];
+        sum += difference * difference;
+    }
+
+    return std::sqrt(sum);
+}
+
 void kmeans(std::vector<std::vector<double>>* points, struct options_t* opts) {
 
     int num_points = static_cast<int>(points->size());
-    randomCentroids(opts->num_cluster, num_points, points, opts->seed); // Need the
-    // book-keeping
+
+    // Step 1: Initialize Centroids
+    randomCentroids(opts->num_cluster, num_points, points, opts->seed);
+    
+    // Step 2: Map Each Point to it's Nearest Centroid.
+    nearestCentroid(opts->num_cluster, num_points, points, opts->dims);
+
+
     for (int c = 0; c < opts->num_cluster; ++c) {
         std::cout << "Centroid " << c << ": ";
 
