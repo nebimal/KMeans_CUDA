@@ -2,8 +2,11 @@
 #include "argparse.hpp"
 #include "io.hpp"
 #include "kmeans.hpp"
+#include "operators.hpp"
 
 using namespace std;
+
+std::vector<std::vector<double>> points;
 
 int main(int argc, char **argv){
 
@@ -17,7 +20,6 @@ int main(int argc, char **argv){
                << "flag: " << opts.flag << '\n'
                << "seed: " << opts.seed << '\n';
 
-    std::vector<std::vector<double>> points;
     read_file(opts.input_filename, &points);
 
     std::cout << "point[2][]:";
@@ -27,5 +29,5 @@ int main(int argc, char **argv){
     }
     std::cout << std::endl;
 
-    kmeans(&points, &opts);
+    kmeans(&opts);
 }

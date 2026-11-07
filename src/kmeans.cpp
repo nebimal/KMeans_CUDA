@@ -1,5 +1,6 @@
 #include "kmeans.hpp"
 #include "argparse.hpp"
+#include "operators.hpp"
 #include <cmath>
 #include <unordered_map>
 
@@ -19,7 +20,7 @@ void kmeans_srand(unsigned int seed) {
 }
 
 // 1st Step: Randomly select 'k' starting points.
-void randomCentroids(int k, int num_points, std::vector<std::vector<double>>* points, int seed)
+void randomCentroids(int k, int num_points, int seed)
 {
     centroids.resize(k);
     kmeans_srand(seed);
@@ -27,12 +28,12 @@ void randomCentroids(int k, int num_points, std::vector<std::vector<double>>* po
     for (int i = 0; i < k; i++)
     {
         index = kmeans_rand() % num_points; 
-        centroids[i] = (*points)[index];
+        centroids[i] = points[index];
     }
 }
 
 //  2nd Step: Map each point to it's nearest centroid. 
-void nearestCentroid(int k, int num_points, std::vector<std::vector<double>>* points, int dim)
+void nearestCentroid(int k, int num_points, int dim)
 {
     std::vector<double> distance(k); // This should be size of k.
     centroidAssigner.clear();
@@ -45,7 +46,7 @@ void nearestCentroid(int k, int num_points, std::vector<std::vector<double>>* po
         {
             // I want to say I need a vector to hold the results from point A and all the other centroids.
 
-            distance[j] = euclideanDistance((*points)[i], centroids[j], dim);
+            distance[j] = euclideanDistance(points[i], centroids[j], dim);
             // so at centroid 'j', the distance from point 'i' is distance[j].
             // I want an if statement that will give me the index of the smallest distance.
             if (distance[minIndex] > distance[j])
@@ -69,15 +70,49 @@ double euclideanDistance(std::vector<double>& point, std::vector<double>& centro
     return std::sqrt(sum);
 }
 
-void kmeans(std::vector<std::vector<double>>* points, struct options_t* opts) {
+// Step 3: Calculate Mean of All Points Assigned to a Centroid.
+void centroidsMean(int dims, int k)
+{
 
-    int num_points = static_cast<int>(points->size());
+    std::vector<std::vector<double>> sums(k, std::vector<double>(dims, 0.0));
+    std::vector<int> counts(k, 0);
+
+    // Sum each coordinate of points assigned to each cluster.
+    for (const auto& entry : centroidAssigner) {
+        int pointIndex = entry.first;
+        int cluster = entry.second;
+
+        counts[cluster]++;
+
+        for (int d = 0; d < dims; d++) {
+            sums[cluster][d] += points[pointIndex][d];
+        }
+    }
+
+    // Convert coordinate sums into averages.
+    for (int c = 0; c < k; c++) {
+        if (counts[c] == 0) {
+            continue; // Keep the previous center if no points assigned.
+        }
+
+        for (int d = 0; d < dims; d++) {
+            centroids[c][d] = sums[c][d] / counts[c];
+        }
+    }
+}
+
+void kmeans(struct options_t* opts) {
+
+    int num_points = static_cast<int>(points.size());
 
     // Step 1: Initialize Centroids
-    randomCentroids(opts->num_cluster, num_points, points, opts->seed);
+    randomCentroids(opts->num_cluster, num_points, opts->seed);
     
     // Step 2: Map Each Point to it's Nearest Centroid.
-    nearestCentroid(opts->num_cluster, num_points, points, opts->dims);
+    nearestCentroid(opts->num_cluster, num_points, opts->dims);
+
+    // Step 3: Calculate Mean of All Points Assigned to a Centroid Then Move the Centroids Closer to their Destination.
+    centroidsMean(opts->dims, opts->num_cluster);
 
 
     for (int c = 0; c < opts->num_cluster; ++c) {

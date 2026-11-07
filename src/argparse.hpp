@@ -4,6 +4,7 @@
 #include <getopt.h>
 #include <stdlib.h>
 #include <iostream>
+#include <vector>
 
 struct options_t {
     int     num_cluster;
